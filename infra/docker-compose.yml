@@ -42,7 +42,26 @@ services:
       retries: 5
       start_period: 15s
 
-  # 2. Redpanda Console (Streaming Bus UI/Monitoring)
+  # 2. Redpanda Topic Initialization (Pre-creates required topics)
+  redpanda-init-topics:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.1
+    container_name: passiveshield-redpanda-init-topics
+    command: >
+      bash -c "
+        echo 'Waiting for Redpanda broker...'
+        rpk cluster info --brokers redpanda:9092
+        echo 'Creating required PassiveShield Redpanda topics...'
+        rpk topic create raw-flow-events dns-observations tls-observations feature-snapshots detection-results fused-threats system-alerts --brokers redpanda:9092 || true
+        echo 'Redpanda topics initialized successfully:'
+        rpk topic list --brokers redpanda:9092
+      "
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - passiveshield-net
+
+  # 3. Redpanda Console (Streaming Bus UI/Monitoring)
   redpanda-console:
     image: docker.redpanda.com/redpandadata/console:v2.5.2
     container_name: passiveshield-redpanda-console
