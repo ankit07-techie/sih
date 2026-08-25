@@ -82,15 +82,16 @@ services:
     networks:
       - passiveshield-net
 
-  # 3. Redis (Bounded State Store)
+  # 4. Redis (Bounded State Store)
   redis:
     image: redis:7-alpine
     container_name: passiveshield-redis
-    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_dev_secret} --save 60 1 --loglevel notice
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-redis_dev_secret}
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
     networks:
       - passiveshield-net
     healthcheck:
