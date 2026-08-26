@@ -4,10 +4,12 @@ from .telemetry import (
     TLSObservation,
     ContractValidationError
 )
+from .feature_snapshot import FeatureSnapshot
 
 __all__ = [
     "NormalizedFlowEvent",
     "DNSObservation",
     "TLSObservation",
-    "ContractValidationError"
+    "ContractValidationError",
+    "FeatureSnapshot"
 ]

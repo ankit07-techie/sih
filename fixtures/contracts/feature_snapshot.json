@@ -1,0 +1,21 @@
+{
+  "event_type": "FeatureSnapshot",
+  "version": "1.0",
+  "snapshot_id": "snap-98765432-1234-5678-90ab-cdef12345678",
+  "timestamp": "2026-08-26T22:07:00.000Z",
+  "entity_type": "ip",
+  "entity_id": "192.168.1.50",
+  "window_seconds": 60,
+  "features": {
+    "flow_count": 12,
+    "orig_bytes": 4096,
+    "resp_bytes": 16384,
+    "orig_pkts": 32,
+    "resp_pkts": 48,
+    "byte_ratio": 0.25,
+    "unique_dest_ports": 4,
+    "unique_dest_ips": 2,
+    "bytes_per_sec": 341.33,
+    "pkts_per_sec": 1.33
+  }
+}
