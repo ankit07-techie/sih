@@ -51,7 +51,7 @@ services:
         echo 'Waiting for Redpanda broker...'
         rpk cluster info --brokers redpanda:9092
         echo 'Creating required PassiveShield Redpanda topics...'
-        rpk topic create raw-flow-events dns-observations tls-observations feature-snapshots detection-results fused-threats system-alerts --brokers redpanda:9092 || true
+        rpk topic create raw_conn raw_dns raw_ssl raw-flow-events dns-observations tls-observations feature-snapshots detection-results fused-threats system-alerts --brokers redpanda:9092 || true
         echo 'Redpanda topics initialized successfully:'
         rpk topic list --brokers redpanda:9092
       "
