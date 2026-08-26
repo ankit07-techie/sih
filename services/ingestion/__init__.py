@@ -1,5 +1,6 @@
 from .zeek_adapter import ZeekAdapter, ZeekAdapterError
 from .telemetry_producer import TelemetryProducer, TelemetryProducerError, TOPIC_RAW_CONN, TOPIC_RAW_DNS, TOPIC_RAW_SSL
+from .stream_pipeline import IngestionPipeline
 
 __all__ = [
     "ZeekAdapter",
@@ -8,5 +9,6 @@ __all__ = [
     "TelemetryProducerError",
     "TOPIC_RAW_CONN",
     "TOPIC_RAW_DNS",
-    "TOPIC_RAW_SSL"
+    "TOPIC_RAW_SSL",
+    "IngestionPipeline"
 ]
