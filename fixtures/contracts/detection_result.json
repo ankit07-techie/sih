@@ -1,0 +1,27 @@
+{
+  "event_type": "DetectionResult",
+  "version": "1.0",
+  "detection_id": "det-12345678-8765-4321-abcd-ef0123456789",
+  "timestamp": "2026-08-26T22:12:00.000Z",
+  "detector_name": "DDoSDetector",
+  "entity_type": "ip",
+  "entity_id": "10.0.0.1",
+  "severity": "HIGH",
+  "confidence_score": 0.89,
+  "is_threat": true,
+  "evidence": [
+    {
+      "code": "VOLUMETRIC_SURGE",
+      "message": "PPS (520.0) is 5.2x baseline (100.0)",
+      "value": 520.0,
+      "threshold": 100.0
+    },
+    {
+      "code": "SYN_FLOOD_SIGNAL",
+      "message": "Unacknowledged SYN ratio is 82.0%",
+      "value": 0.82,
+      "threshold": 0.4
+    }
+  ],
+  "mitigation_recommendation": "RATE_LIMIT_SRC_SUBNETS"
+}
