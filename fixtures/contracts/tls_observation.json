@@ -1,0 +1,12 @@
+{
+  "event_type": "TLSObservation",
+  "version": "1.0",
+  "timestamp": "2026-08-26T21:49:02.100Z",
+  "flow_id": "C12345678902",
+  "client_ip": "192.168.1.51",
+  "server_ip": "10.0.0.2",
+  "tls_version": "TLSv13",
+  "cipher_suite": "TLS_AES_256_GCM_SHA384",
+  "sni_hostname": "secure.example.com",
+  "established": true
+}

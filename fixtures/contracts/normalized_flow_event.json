@@ -1,0 +1,18 @@
+{
+  "event_type": "NormalizedFlowEvent",
+  "version": "1.0",
+  "timestamp": "2026-08-26T21:49:00.000Z",
+  "flow_id": "C12345678901",
+  "src_ip": "192.168.1.50",
+  "src_port": 49152,
+  "dst_ip": "10.0.0.1",
+  "dst_port": 80,
+  "protocol": "tcp",
+  "duration": 0.125,
+  "orig_bytes": 512,
+  "resp_bytes": 2048,
+  "orig_packets": 5,
+  "resp_packets": 6,
+  "conn_state": "SF",
+  "service": "http"
+}
