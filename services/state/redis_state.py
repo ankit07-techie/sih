@@ -158,11 +158,11 @@ class RedisStateManager:
     Supports flow counter aggregation, target fan-out tracking, and inter-arrival timing sets.
     """
 
-    def __init__(self, host: str = "localhost", port: int = 6379, password: str = "redis_dev_secret", client_instance=None):
+    def __init__(self, host: str = "localhost", port: int = 6379, password: str = "redis_dev_secret", client_instance=None, redis_client=None):
         self.host = host
         self.port = port
         self.password = password
-        self._client = client_instance
+        self._client = client_instance or redis_client
         self._using_mock = False
 
         if self._client is None:
