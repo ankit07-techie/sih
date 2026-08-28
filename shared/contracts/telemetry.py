@@ -200,6 +200,9 @@ class TLSObservation:
     cipher_suite: str = "UNKNOWN"
     sni_hostname: str = ""
     established: bool = False
+    ja3: str = ""
+    ja3s: str = ""
+    ja4: str = ""
 
     def __post_init__(self):
         if not self.timestamp:
@@ -230,7 +233,10 @@ class TLSObservation:
                 tls_version=str(d.get("tls_version", "UNKNOWN")),
                 cipher_suite=str(d.get("cipher_suite", "UNKNOWN")),
                 sni_hostname=str(d.get("sni_hostname", "")),
-                established=bool(d.get("established", False))
+                established=bool(d.get("established", False)),
+                ja3=str(d.get("ja3", "")),
+                ja3s=str(d.get("ja3s", "")),
+                ja4=str(d.get("ja4", ""))
             )
         except KeyError as e:
             raise ContractValidationError(f"Missing required key for TLSObservation: {e}") from e

@@ -120,5 +120,8 @@ class ZeekAdapter:
             "tls_version": str(data.get("version", "UNKNOWN")),
             "cipher_suite": str(data.get("cipher", "UNKNOWN")),
             "sni_hostname": str(data.get("server_name", "")),
-            "established": bool(data.get("established", False))
+            "established": bool(data.get("established", False)),
+            "ja3": str(data.get("ja3", "")),
+            "ja3s": str(data.get("ja3s", "")),
+            "ja4": str(data.get("ja4", ""))
         }

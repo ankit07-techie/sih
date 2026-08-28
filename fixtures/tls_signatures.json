@@ -1,0 +1,36 @@
+{
+  "ja3_signatures": {
+    "e7ed94cc5e470845a0b4b2941f15e32a": {
+      "malware": "Cobalt Strike Beacon",
+      "severity": "CRITICAL",
+      "category": "C2"
+    },
+    "51c64c77e60f3980eea40869b68c58a8": {
+      "malware": "Metasploit Meterpreter",
+      "severity": "CRITICAL",
+      "category": "C2"
+    },
+    "6734f37d90595b6002bf7061704940a6": {
+      "malware": "AsyncRAT",
+      "severity": "HIGH",
+      "category": "RAT"
+    },
+    "17f54070a2489e5a8efb7a2d4805e718": {
+      "malware": "Sliver C2",
+      "severity": "CRITICAL",
+      "category": "C2"
+    }
+  },
+  "ja4_signatures": {
+    "t13d151600_8da5c1b52b28_0123456789ab": {
+      "malware": "Cobalt Strike HTTPS Beacon",
+      "severity": "CRITICAL",
+      "category": "C2"
+    },
+    "t12d140800_b990a1c2d3e4_112233445566": {
+      "malware": "TrickBot Loader",
+      "severity": "HIGH",
+      "category": "Botnet"
+    }
+  }
+}

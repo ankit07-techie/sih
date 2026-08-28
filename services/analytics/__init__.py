@@ -1,7 +1,8 @@
-from .telemetry_consumer import TelemetryConsumer, TelemetryConsumerError, DEFAULT_TOPICS
+from .telemetry_consumer import TelemetryConsumer
+from .tls_analyzer import TLSMetadataAnalyzer, ANALYZER_NAME as TLS_ANALYZER_NAME
 
 __all__ = [
     "TelemetryConsumer",
-    "TelemetryConsumerError",
-    "DEFAULT_TOPICS"
+    "TLSMetadataAnalyzer",
+    "TLS_ANALYZER_NAME"
 ]
