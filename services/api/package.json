@@ -1,0 +1,16 @@
+{
+  "name": "passiveshield-api",
+  "version": "1.0.0",
+  "description": "PassiveShield AI — Node.js Express Backend API Gateway",
+  "main": "src/app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "helmet": "^7.1.0"
+  }
+}
