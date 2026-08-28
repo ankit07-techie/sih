@@ -49,6 +49,42 @@ class DDoSDetector:
         unique_src_ips = int(features.get("unique_source_ips", 0))
         port_entropy = float(features.get("destination_port_entropy", 0.0))
 
+        # 0. Dedicated Passive Slow HTTP / Slowloris Heuristic Check
+        duration = float(features.get("duration") or features.get("duration_sec") or 0.0)
+        flow_rate_pps = float(features.get("flow_rate_pps") or features.get("pps") or 0.0)
+        ack_ratio = float(features.get("ack_ratio") or 0.0)
+        protocol = str(features.get("protocol") or "tcp").lower()
+        dst_port = int(features.get("dst_port") or 80)
+
+        is_slow_http = (
+            duration >= 300.0 and
+            0.0 < flow_rate_pps <= 0.5 and
+            (ack_ratio >= 0.4 or features.get("ack_ratio") is not None or features.get("ack_count", 0) > 0) and
+            protocol in ["tcp", "http", "https"] and
+            dst_port in [80, 443, 8080, 8443]
+        )
+
+        if is_slow_http:
+            slow_evidence = [
+                ThreatEvidence(
+                    code="SLOW_HTTP_EXHAUSTION_DETECTED",
+                    message=f"Passive Slow HTTP / Slowloris connection pattern detected: duration={duration}s, rate={flow_rate_pps:.2f} pps.",
+                    value={"duration": duration, "flow_rate_pps": flow_rate_pps, "ack_ratio": ack_ratio},
+                    threshold={"min_duration": 300.0, "max_pps": 0.5}
+                ).to_dict()
+            ]
+            return DetectionResult(
+                timestamp=timestamp,
+                detector_name=DETECTOR_NAME,
+                entity_type="ip",
+                entity_id=entity_id,
+                severity="HIGH",
+                confidence_score=0.88,
+                is_threat=True,
+                evidence=slow_evidence,
+                mitigation_recommendation="FLAG_SUSPECT_IPS"
+            )
+
         # Check static volumetric floors safeguard
         if pps < self.pps_floor and bps < self.bps_floor:
             evidence_list.append(ThreatEvidence(

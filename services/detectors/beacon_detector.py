@@ -84,8 +84,30 @@ class C2BeaconDetector:
         periodicity_score = float(features.get("periodicity_score", 0.0))
         payload_size_std = float(features.get("payload_size_std", 100.0))
 
-        # Check minimum samples safeguard
+        # Check minimum samples safeguard (with periodicity_score fallback for single-snapshot inputs)
         if sample_count < self.min_samples_floor or iat_count < 4:
+            if periodicity_score >= 0.85:
+                fallback_evidence = [
+                    ThreatEvidence(
+                        code="PERIODIC_BEACONING_FALLBACK",
+                        message=f"Pre-computed periodicity score ({periodicity_score:.2f}) indicates regular C2 beaconing pattern (N < 16 fallback).",
+                        value=periodicity_score,
+                        threshold=0.85
+                    ).to_dict()
+                ]
+                conf = round(min(1.0, max(0.0, periodicity_score * 0.95)), 2)
+                return DetectionResult(
+                    timestamp=timestamp,
+                    detector_name=DETECTOR_NAME,
+                    entity_type="flow_pair",
+                    entity_id=entity_id,
+                    severity="HIGH" if conf >= 0.85 else "MEDIUM",
+                    confidence_score=conf,
+                    is_threat=True,
+                    evidence=fallback_evidence,
+                    mitigation_recommendation="FLAG_SUSPECT_C2_HOST"
+                )
+
             evidence_list.append(ThreatEvidence(
                 code="INSUFFICIENT_BEACON_SAMPLES",
                 message=f"Sample count ({sample_count}) is below minimum beaconing observation threshold ({self.min_samples_floor}).",
