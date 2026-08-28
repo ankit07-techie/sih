@@ -1,0 +1,46 @@
+{
+  "alert_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "timestamp": "2026-08-28T16:55:00Z",
+  "threat_classification": "CORRELATED_MULTI_VECTOR",
+  "severity": "CRITICAL",
+  "confidence_score": 0.98,
+  "affected_context": {
+    "entity_type": "ip",
+    "entity_id": "192.168.1.200",
+    "src_ip": "192.168.1.200",
+    "dst_ip": "198.51.100.99",
+    "monitored_subnet": "192.168.1.0/24"
+  },
+  "observation_window_seconds": 300,
+  "contributing_detectors": [
+    "PortScanDetector",
+    "ExfiltrationDetector",
+    "TLSMetadataAnalyzer"
+  ],
+  "structured_evidence": [
+    {
+      "code": "VERTICAL_PORT_SCAN",
+      "message": "Vertical port scan detected: 50 distinct ports probed.",
+      "value": 50,
+      "threshold": 15,
+      "detector_source": "PortScanDetector"
+    },
+    {
+      "code": "EXFIL_HIGH_BURST_VOLUME",
+      "message": "Large single-flow outbound data transfer (15.0 MB).",
+      "value": 15000000,
+      "threshold": 10000000,
+      "detector_source": "ExfiltrationDetector"
+    },
+    {
+      "code": "JA3_MALWARE_SIGNATURE_MATCH",
+      "message": "JA3 hash matched known threat signature: Cobalt Strike Beacon.",
+      "value": "e7ed94cc5e470845a0b4b2941f15e32a",
+      "threshold": "Cobalt Strike Beacon",
+      "detector_source": "TLSMetadataAnalyzer"
+    }
+  ],
+  "mitigation_recommendation": "APPLY_PASSIVE_SHIELD_FILTERS",
+  "event_type": "ThreatAlert",
+  "version": "1.0"
+}
