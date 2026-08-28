@@ -132,6 +132,25 @@ class MockRedisDriver:
         self._clean_expired()
         return len(self._zsets.get(key, []))
 
+    def publish(self, channel: str, message: str) -> int:
+        self._clean_expired()
+        if not hasattr(self, "_subscribers"):
+            self._subscribers: Dict[str, List[Any]] = {}
+        subs = self._subscribers.get(channel, [])
+        for callback in subs:
+            try:
+                callback(message)
+            except Exception as e:
+                logger.error(f"Error in mock pubsub subscriber callback: {e}")
+        return len(subs)
+
+    def register_mock_subscriber(self, channel: str, callback: Any):
+        if not hasattr(self, "_subscribers"):
+            self._subscribers: Dict[str, List[Any]] = {}
+        if channel not in self._subscribers:
+            self._subscribers[channel] = []
+        self._subscribers[channel].append(callback)
+
 
 class RedisStateManager:
     """
