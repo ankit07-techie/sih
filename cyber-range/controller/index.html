@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassiveShield AI — Cyber Range Control Panel</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .title-group h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .title-group h1 span {
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            background: rgba(6, 182, 212, 0.15);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 0.3rem;
+        }
+
+        /* Status Grid */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .status-card .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-card .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 0.4rem;
+            color: var(--accent-green);
+        }
+
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            color: var(--accent-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Controls & Form */
+        .setting-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-item {
+            flex: 1;
+        }
+
+        .setting-item label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        select, input {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.6rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        /* Scenario Buttons Grid */
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-scenario {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .btn-scenario:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .btn-scenario.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.2);
+            color: #fff;
+        }
+
+        .btn-scenario.mixed-btn {
+            grid-column: span 2;
+            border-color: var(--accent-amber);
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-amber);
+        }
+
+        .btn-scenario.mixed-btn:hover, .btn-scenario.mixed-btn.selected {
+            background: rgba(245, 158, 11, 0.25);
+        }
+
+        .btn-start {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border: none;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        .btn-start:active { transform: scale(0.98); }
+        .btn-start:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Ticker & Live Panel */
+        .ticker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .ticker-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0.8rem;
+            background: #0f172a;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .ticker-row .t-label { color: var(--text-muted); }
+        .ticker-row .t-val { font-weight: 600; font-family: monospace; }
+
+        /* Result Panel */
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #0f172a;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .badge-severity {
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .sev-CRITICAL { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+        .sev-HIGH { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+        .sev-MEDIUM { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .sev-INFO, .sev-LOW { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+
+        .evidence-list {
+            margin-top: 0.8rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .evidence-item {
+            background: #1e293b;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.4rem;
+            border-left: 3px solid var(--accent-cyan);
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-group">
+            <h1>PassiveShield AI <span>SIH 26145 LAB</span></h1>
+            <div class="subtitle">Docker Desktop Add-on Cyber Range & Passive Threat Detection Simulator</div>
+        </div>
+    </div>
+
+    <!-- Docker Lab Status Bar -->
+    <div class="status-grid">
+        <div class="status-card">
+            <div class="label">Lab Network</div>
+            <div class="value" id="st-net">ISOLATED</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Passive Sensor</div>
+            <div class="value" id="st-sensor">ACTIVE</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Victim HTTP</div>
+            <div class="value" id="st-vhttp">ONLINE</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Victim DNS</div>
+            <div class="value" id="st-vdns">ONLINE</div>
+        </div>
+        <div class="status-card">
+            <div class="label">Generator</div>
+            <div class="value" id="st-gen">READY</div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <!-- Control Panel -->
+        <div class="section-card">
+            <div class="section-title">
+                Manual Traffic Generator
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Lab Only — No External Routing</span>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-item">
+                    <label>Duration</label>
+                    <select id="sel-duration">
+                        <option value="5">5 Seconds</option>
+                        <option value="10" selected>10 Seconds</option>
+                        <option value="30">30 Seconds</option>
+                        <option value="60">60 Seconds</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>Intensity</label>
+                    <select id="sel-intensity">
+                        <option value="LOW">LOW</option>
+                        <option value="MEDIUM" selected>MEDIUM</option>
+                        <option value="HIGH">HIGH</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="scenario-grid">
+                <button class="btn-scenario" onclick="selectScenario('benign_tcp', this)">NORMAL HTTP</button>
+                <button class="btn-scenario" onclick="selectScenario('benign_dns', this)">NORMAL DNS</button>
+                <button class="btn-scenario" onclick="selectScenario('syn_flood', this)">SYN FLOOD SIMULATION</button>
+                <button class="btn-scenario" onclick="selectScenario('udp_flood', this)">UDP FLOOD SIMULATION</button>
+                <button class="btn-scenario" onclick="selectScenario('slow_http', this)">SLOW HTTP SIMULATION</button>
+                <button class="btn-scenario" onclick="selectScenario('dns_tunnel', this)">DNS TUNNEL SIMULATION</button>
+                <button class="btn-scenario" onclick="selectScenario('dga', this)">DGA SIMULATION</button>
+                <button class="btn-scenario" onclick="selectScenario('c2_beacon', this)">C2 BEACON SIMULATION</button>
+                <button class="btn-scenario mixed-btn" onclick="selectScenario('mixed', this)">⚡ MIXED THREAT SIMULATION</button>
+            </div>
+
+            <button class="btn-start" id="btn-start" onclick="startSimulation()">START THREAT SIMULATION</button>
+        </div>
+
+        <!-- Live Execution & Results Panel -->
+        <div class="section-card">
+            <div class="section-title">
+                Live Execution & PassiveShield Detection
+                <span style="font-size: 0.8rem; color: var(--accent-cyan);" id="live-status-tag">READY</span>
+            </div>
+
+            <div class="ticker-list">
+                <div class="ticker-row"><span class="t-label">Scenario Selected:</span><span class="t-val" id="tk-scenario">None</span></div>
+                <div class="ticker-row"><span class="t-label">Target Container:</span><span class="t-val">victim-services (172.28.0.10)</span></div>
+                <div class="ticker-row"><span class="t-label">Elapsed / Duration:</span><span class="t-val" id="tk-elapsed">0s / 0s</span></div>
+                <div class="ticker-row"><span class="t-label">Packets Generated:</span><span class="t-val" id="tk-pkts-gen">0</span></div>
+                <div class="ticker-row"><span class="t-label">Packets Captured:</span><span class="t-val" id="tk-pkts-cap">0</span></div>
+                <div class="ticker-row"><span class="t-label">Unique PCAP File:</span><span class="t-val" id="tk-pcap">None</span></div>
+                <div class="ticker-row"><span class="t-label">External Network:</span><span class="t-val" style="color: var(--accent-green);">DISABLED (100% Isolated)</span></div>
+            </div>
+
+            <div class="result-box" id="result-box" style="display: none;">
+                <div class="result-header">
+                    <div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">PASSIVESHIELD DETECTION RESULT</div>
+                        <div style="font-size: 1.3rem; font-weight: 700;" id="res-class">SYN_FLOOD</div>
+                    </div>
+                    <div class="badge-severity" id="res-sev">CRITICAL</div>
+                </div>
+
+                <div class="ticker-list">
+                    <div class="ticker-row"><span class="t-label">Confidence Score:</span><span class="t-val" id="res-conf">0.95</span></div>
+                    <div class="ticker-row"><span class="t-label">Risk Score:</span><span class="t-val" id="res-risk">0.95</span></div>
+                    <div class="ticker-row"><span class="t-label">Detector Source:</span><span class="t-val" id="res-detector">DDoSDetector</span></div>
+                </div>
+
+                <div class="evidence-list" id="res-evidence">
+                    <!-- Evidence items populated via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedScenario = 'syn_flood';
+        let pollTimer = null;
+
+        function selectScenario(name, btn) {
+            selectedScenario = name;
+            document.querySelectorAll('.btn-scenario').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            document.getElementById('tk-scenario').innerText = name.toUpperCase();
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                if (data.lab_status) {
+                    document.getElementById('st-net').innerText = data.lab_status.network.split(' ')[0];
+                    document.getElementById('st-sensor').innerText = data.lab_status.sensor;
+                    document.getElementById('st-vhttp').innerText = data.lab_status.victim_http.split(' ')[0];
+                    document.getElementById('st-vdns').innerText = data.lab_status.victim_dns.split(' ')[0];
+                    document.getElementById('st-gen').innerText = data.lab_status.generator.split(' ')[0];
+                }
+
+                if (data.simulation) {
+                    const sim = data.simulation;
+                    document.getElementById('live-status-tag').innerText = sim.status;
+                    document.getElementById('tk-elapsed').innerText = `${sim.elapsed}s / ${sim.duration}s`;
+                    document.getElementById('tk-pkts-gen').innerText = sim.packets_generated;
+                    document.getElementById('tk-pkts-cap').innerText = sim.packets_captured;
+                    document.getElementById('tk-pcap').innerText = sim.pcap_file || 'None';
+
+                    if (sim.status === 'COMPLETED' && sim.last_result) {
+                        renderResult(sim.last_result);
+                        document.getElementById('btn-start').disabled = false;
+                        clearInterval(pollTimer);
+                    }
+                }
+            } catch (err) {
+                console.error("Status fetch error:", err);
+            }
+        }
+
+        async function startSimulation() {
+            const duration = document.getElementById('sel-duration').value;
+            const intensity = document.getElementById('sel-intensity').value;
+
+            document.getElementById('btn-start').disabled = true;
+            document.getElementById('result-box').style.display = 'none';
+
+            try {
+                const res = await fetch('/api/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scenario: selectedScenario, duration: parseInt(duration), intensity: intensity })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('tk-scenario').innerText = selectedScenario.toUpperCase();
+                    pollTimer = setInterval(fetchStatus, 1000);
+                } else {
+                    alert("Simulation error: " + (data.error || "Failed to start"));
+                    document.getElementById('btn-start').disabled = false;
+                }
+            } catch (err) {
+                alert("Server communication error");
+                document.getElementById('btn-start').disabled = false;
+            }
+        }
+
+        function renderResult(res) {
+            const box = document.getElementById('result-box');
+            box.style.display = 'block';
+
+            document.getElementById('res-class').innerText = res.threat_classification || 'BENIGN';
+            document.getElementById('res-conf').innerText = `${(res.confidence_score * 100).toFixed(0)}%`;
+            document.getElementById('res-risk').innerText = res.risk_score || res.confidence_score;
+            document.getElementById('res-detector').innerText = res.detector_source || 'ThreatFusionEngine';
+
+            const sevBadge = document.getElementById('res-sev');
+            sevBadge.innerText = res.severity || 'INFO';
+            sevBadge.className = 'badge-severity sev-' + (res.severity || 'INFO');
+
+            const evContainer = document.getElementById('res-evidence');
+            evContainer.innerHTML = '<strong>Evidence Diagnostic Tags:</strong>';
+
+            if (res.evidence && res.evidence.length > 0) {
+                res.evidence.forEach(ev => {
+                    const item = document.createElement('div');
+                    item.className = 'evidence-item';
+                    item.innerText = `[${ev.code || 'TAG'}] ${ev.message || JSON.stringify(ev)}`;
+                    evContainer.appendChild(item);
+                });
+            } else {
+                const item = document.createElement('div');
+                item.className = 'evidence-item';
+                item.innerText = '[BENIGN] Observed flow telemetry is normal.';
+                evContainer.appendChild(item);
+            }
+        }
+
+        // Initialize button selection
+        document.querySelectorAll('.btn-scenario')[2].click();
+        fetchStatus();
+    </script>
+</body>
+</html>

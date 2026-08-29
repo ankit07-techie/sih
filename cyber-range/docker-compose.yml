@@ -1,5 +1,3 @@
-version: '3.8'
-
 # PassiveShield AI — Add-on Docker Cyber Range
 # Isolated Threat Simulation & Passive Sensor Environment
 # SIH Problem Statement 26145: AI-Based Detection of Cyber Threats in Unidirectional IP Traffic
@@ -14,6 +12,30 @@ networks:
         - subnet: 172.28.0.0/16
 
 services:
+  cyber-range-controller:
+    build:
+      context: ./controller
+      dockerfile: Dockerfile
+    container_name: cyber-range-controller
+    hostname: controller.lab.internal
+    ports:
+      - "8080:8080" # Web Control Panel URL for Docker Desktop user: http://localhost:8080
+    networks:
+      threat-lab-network:
+        ipv4_address: 172.28.0.5
+    volumes:
+      - ./captures:/app/captures
+      - ../:/app/repo_root:ro # Read-only mount of existing PassiveShield repo
+    environment:
+      - PORT=8080
+      - VICTIM_IP=172.28.0.10
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s = socket.socket(); s.connect(('127.0.0.1', 8080)); s.close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
   victim-services:
     build:
       context: ./victim
