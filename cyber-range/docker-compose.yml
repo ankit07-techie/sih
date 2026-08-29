@@ -1,0 +1,62 @@
+version: '3.8'
+
+# PassiveShield AI — Add-on Docker Cyber Range
+# Isolated Threat Simulation & Passive Sensor Environment
+# SIH Problem Statement 26145: AI-Based Detection of Cyber Threats in Unidirectional IP Traffic
+
+networks:
+  threat-lab-network:
+    name: threat-lab-network
+    driver: bridge
+    internal: true # STRICT ISOLATION: No external internet routing or host LAN exposure
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+services:
+  victim-services:
+    build:
+      context: ./victim
+      dockerfile: Dockerfile
+    container_name: cyber-range-victim
+    hostname: victim.lab.internal
+    networks:
+      threat-lab-network:
+        ipv4_address: 172.28.0.10
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s = socket.socket(); s.connect(('127.0.0.1', 80)); s.close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  traffic-generator:
+    build:
+      context: ./generator
+      dockerfile: Dockerfile
+    container_name: cyber-range-generator
+    hostname: generator.lab.internal
+    depends_on:
+      victim-services:
+        condition: service_healthy
+    networks:
+      threat-lab-network:
+        ipv4_address: 172.28.0.20
+    volumes:
+      - ./scenarios:/app/scenarios
+      - ./captures:/app/captures
+    environment:
+      - VICTIM_IP=172.28.0.10
+      - GENERATOR_IP=172.28.0.20
+    restart: "no"
+
+  passive-sensor:
+    build:
+      context: ./sensor
+      dockerfile: Dockerfile
+    container_name: cyber-range-sensor
+    hostname: sensor.lab.internal
+    network_mode: "service:victim-services" # Passive sidecar tapping victim container traffic
+    volumes:
+      - ./captures:/captures
+    restart: unless-stopped

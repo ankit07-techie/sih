@@ -1,0 +1,2 @@
+# PassiveShield Cyber Range Generator Dependencies
+# Standard Library Python modules used for maximum compatibility
