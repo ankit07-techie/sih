@@ -14,5 +14,6 @@ coverage/
 .DS_Store
 *.log
 cyber-range/captures/
-*.pcap
-
+.next/
+out/
+.turbo/
