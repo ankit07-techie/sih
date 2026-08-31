@@ -35,9 +35,24 @@ export function formatClassificationTitle(classification) {
 export function adaptThreatAlertToIncident(alert) {
   if (!alert) return null;
 
-  const scorePercent = Math.round((Number(alert.confidence_score) || 0) * 100);
+  const isStop = alert.status === 'STOPPED' || 
+                 alert.status === 'MITIGATED' || 
+                 alert.threat_classification === 'ATTACK_STOPPED' || 
+                 alert.threat_classification === 'TRAFFIC_NORMAL';
+
+  const scorePercent = isStop ? 0 : Math.round((Number(alert.confidence_score) || 0) * 100);
   const primaryDetector = (alert.contributing_detectors && alert.contributing_detectors[0]) || 'ThreatFusionEngine';
-  const entityId = alert.affected_context?.entity_id || alert.affected_context?.src_ip || '10.0.0.1';
+  
+  const srcIp = alert.affected_context?.src_ip || alert.src_ip || '198.51.100.42';
+  const dstIp = alert.affected_context?.dst_ip || alert.dst_ip || '10.20.1.50';
+  const srcPort = alert.affected_context?.src_port || alert.src_port || '';
+  const dstPort = alert.affected_context?.dst_port || alert.dst_port || '';
+  
+  const originTag = alert.affected_context?.origin || (srcIp.startsWith('198.') || srcIp.startsWith('203.') ? 'External WAN (Internet)' : 'Internal Subnet');
+  const targetTag = alert.affected_context?.target || (dstIp.startsWith('10.') ? 'Protected Core DMZ' : 'Internal LAN');
+  const direction = alert.affected_context?.direction || (isStop ? 'NEUTRALIZED' : 'INBOUND ATTACK');
+
+  const entityId = alert.affected_context?.entity_id || srcIp;
   const entityType = alert.affected_context?.entity_type || 'Unidirectional Flow';
   
   // Create short display ID
@@ -45,21 +60,40 @@ export function adaptThreatAlertToIncident(alert) {
     ? (alert.alert_id.startsWith('INC-') ? alert.alert_id : `ALT-${alert.alert_id.slice(0, 8).toUpperCase()}`)
     : `ALT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
+  let statusText = 'Active Threat';
+  if (isStop) {
+    statusText = 'Attack Stopped · Baseline Normal';
+  } else if (alert.status === 'STOPPED') {
+    statusText = 'Stopped / Mitigated';
+  } else if (alert.severity === 'CRITICAL' || alert.severity === 'HIGH') {
+    statusText = 'Active Attack In Progress';
+  } else {
+    statusText = 'Observed Signal';
+  }
+
   return {
     id: displayId,
     rawAlertId: alert.alert_id,
     title: formatClassificationTitle(alert.threat_classification),
     rawClassification: alert.threat_classification || 'UNKNOWN',
-    source: `${entityType} / ${entityId}`,
+    source: `${srcIp}${srcPort ? ':' + srcPort : ''} ➔ ${dstIp}${dstPort ? ':' + dstPort : ''}`,
+    srcIp,
+    dstIp,
+    srcPort,
+    dstPort,
+    originTag,
+    targetTag,
+    direction,
+    isStop,
     entityId: entityId,
     detector: primaryDetector,
-    severity: (alert.severity || 'INFO').toUpperCase(),
+    severity: isStop ? 'LOW' : ((alert.severity || 'INFO').toUpperCase()),
     score: scorePercent,
     confidence: alert.confidence_score || 0.0,
     age: formatRelativeTime(alert.timestamp),
     timestamp: alert.timestamp || new Date().toISOString(),
-    status: (alert.severity === 'CRITICAL' || alert.severity === 'HIGH') ? 'Active Threat' : 'Observed',
-    mitigation: alert.mitigation_recommendation || 'APPLY_PASSIVE_SHIELD_FILTERS',
+    status: statusText,
+    mitigation: alert.mitigation_recommendation || (isStop ? 'TRAFFIC_NORMALIZED' : 'APPLY_PASSIVE_SHIELD_FILTERS'),
     evidence: alert.structured_evidence || [],
     contributingDetectors: alert.contributing_detectors || [primaryDetector],
     raw: alert

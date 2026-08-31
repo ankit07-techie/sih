@@ -135,7 +135,109 @@ app.get('/api/v1/alerts', (req, res) => {
   });
 });
 
-// 3. GET /api/v1/alerts/:id — Alert Detail View
+// 3. POST /api/v1/alerts — Ingest and broadcast ThreatAlert in real-time
+app.post('/api/v1/alerts', (req, res) => {
+  const alert = req.body;
+  if (!alert || !alert.threat_classification) {
+    return errorResponse(res, 'Invalid alert payload: threat_classification is required', 'INVALID_PAYLOAD', 400);
+  }
+
+  const isStopEvent = alert.status === 'STOPPED' || 
+                      alert.status === 'MITIGATED' || 
+                      alert.threat_classification === 'ATTACK_STOPPED' || 
+                      alert.threat_classification === 'TRAFFIC_NORMAL';
+
+  const standardizedAlert = {
+    alert_id: alert.alert_id || `alert-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+    timestamp: alert.timestamp || new Date().toISOString(),
+    threat_classification: alert.threat_classification,
+    severity: isStopEvent ? 'LOW' : (alert.severity || 'HIGH'),
+    status: isStopEvent ? 'STOPPED' : (alert.status || 'ACTIVE'),
+    confidence_score: isStopEvent ? 0.0 : (alert.confidence_score ?? 0.95),
+    affected_context: alert.affected_context || { 
+      entity_type: 'ip', 
+      entity_id: '10.20.1.50',
+      src_ip: alert.src_ip || '198.51.100.42',
+      dst_ip: alert.dst_ip || '10.20.1.50',
+      src_port: alert.src_port || 42000,
+      dst_port: alert.dst_port || 80,
+      origin: alert.origin || 'External WAN (Internet)',
+      target: alert.target || 'Protected Core (Internal DMZ)',
+      direction: alert.direction || 'INBOUND'
+    },
+    observation_window_seconds: alert.observation_window_seconds || 60,
+    contributing_detectors: alert.contributing_detectors || ['SyntheticAttackSimulator'],
+    structured_evidence: alert.structured_evidence || [],
+    mitigation_recommendation: alert.mitigation_recommendation || (isStopEvent ? 'TRAFFIC_NORMALIZED' : 'APPLY_PASSIVE_SHIELD_FILTERS'),
+    event_type: 'ThreatAlert',
+    version: '1.0'
+  };
+
+  // If this is a stop event for a specific IP or all, update any previous active matching alerts
+  if (isStopEvent) {
+    const targetEntity = standardizedAlert.affected_context?.entity_id || standardizedAlert.affected_context?.src_ip;
+    alertStore.forEach(a => {
+      if (!targetEntity || targetEntity === 'ALL' || a.affected_context?.entity_id === targetEntity || a.affected_context?.src_ip === targetEntity) {
+        a.status = 'STOPPED';
+        if (a.severity === 'CRITICAL' || a.severity === 'HIGH') {
+          a.status_note = 'Attack ceased · Traffic normalized';
+        }
+      }
+    });
+  }
+
+  alertStore.unshift(standardizedAlert);
+
+  // Broadcast in real-time over WebSocket to connected frontend clients
+  if (req.app.locals.realtime && req.app.locals.realtime.broadcastAlert) {
+    req.app.locals.realtime.broadcastAlert(standardizedAlert);
+  }
+
+  return successResponse(res, standardizedAlert, null, 201);
+});
+
+// POST /api/v1/alerts/stop-all — Emergency stop all active attacks
+app.post('/api/v1/alerts/stop-all', (req, res) => {
+  alertStore.forEach(a => {
+    a.status = 'STOPPED';
+  });
+
+  const stopAlert = {
+    alert_id: `stop-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    threat_classification: 'ATTACK_STOPPED',
+    severity: 'LOW',
+    status: 'STOPPED',
+    confidence_score: 0.0,
+    affected_context: {
+      entity_type: 'system',
+      entity_id: 'ALL_CHANNELS',
+      src_ip: 'GLOBAL',
+      dst_ip: 'GLOBAL',
+      origin: 'Security Operations Controller',
+      target: 'All Protected Enclaves',
+      direction: 'NEUTRALIZED'
+    },
+    observation_window_seconds: 0,
+    contributing_detectors: ['AttackSimulationController'],
+    structured_evidence: [
+      { code: 'ATTACK_TERMINATED', message: 'Attack simulation stopped. Telemetry arrival rate returned to normal baseline.', value: '0 pps', threshold: 'Baseline', detector_source: 'AttackSimulationController' }
+    ],
+    mitigation_recommendation: 'TRAFFIC_NORMALIZED',
+    event_type: 'ThreatAlert',
+    version: '1.0'
+  };
+
+  alertStore.unshift(stopAlert);
+
+  if (req.app.locals.realtime && req.app.locals.realtime.broadcastAlert) {
+    req.app.locals.realtime.broadcastAlert(stopAlert);
+  }
+
+  return successResponse(res, { message: 'All attacks marked STOPPED and broadcasted to UI', alert: stopAlert }, null, 200);
+});
+
+// 4. GET /api/v1/alerts/:id — Alert Detail View
 app.get('/api/v1/alerts/:id', (req, res) => {
   const alertId = req.params.id;
   const alert = alertStore.find(a => a.alert_id === alertId);

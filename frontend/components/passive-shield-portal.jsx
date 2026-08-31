@@ -182,14 +182,32 @@ function CommandCenterView({ incidents, metrics, openIncident, refreshData, isLi
             <Badge tone={isLive ? 'low' : 'medium'}>{isLive ? 'LIVE FEED CONNECTED' : 'DEMO & LAB FEED'}</Badge>
           </div>
           <div className="incident-list">
-            {incidents.slice(0, 5).map(item => (
+            {incidents.slice(0, 8).map(item => (
               <button className="incident-row" key={item.id} onClick={() => openIncident(item)}>
                 <div className={`severity-bar severity-${item.severity.toLowerCase()}`} />
                 <div className="incident-copy">
-                  <strong>{item.title}</strong>
-                  <span>{item.id} · {item.source} · {item.detector}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <strong>{item.title}</strong>
+                    {item.isStop ? (
+                      <Badge tone="low">STOPPED / BENIGN</Badge>
+                    ) : (
+                      <Badge tone={item.severity}>{item.severity}</Badge>
+                    )}
+                    {item.direction && (
+                      <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', color: '#8db7d6' }}>
+                        {item.direction}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#8ea5b8', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    <span><b style={{ color: '#ff8a80' }}>SRC:</b> {item.srcIp} <small style={{ opacity: 0.75 }}>({item.originTag})</small></span>
+                    <span>➔</span>
+                    <span><b style={{ color: '#80d8ff' }}>DST:</b> {item.dstIp} <small style={{ opacity: 0.75 }}>({item.targetTag})</small></span>
+                    <span style={{ marginLeft: 'auto', fontWeight: 600, color: item.isStop ? '#69f0ae' : '#ffb74d' }}>
+                      {item.isStop ? '✓ ' : '● '}{item.status}
+                    </span>
+                  </div>
                 </div>
-                <Badge tone={item.severity}>{item.severity}</Badge>
                 <span className="row-score">{item.score}</span>
                 <span className="row-arrow">›</span>
               </button>
@@ -277,10 +295,28 @@ function LiveMonitoringView({ incidents, isConnected, openIncident }) {
             <button className="incident-row" key={item.id} onClick={() => openIncident(item)}>
               <div className={`severity-bar severity-${item.severity.toLowerCase()}`} />
               <div className="incident-copy">
-                <strong>{item.title}</strong>
-                <span>{item.id} · {item.source} · Time: {item.age} · Primary: {item.detector}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <strong>{item.title}</strong>
+                  {item.isStop ? (
+                    <Badge tone="low">STOPPED / BENIGN</Badge>
+                  ) : (
+                    <Badge tone={item.severity}>{item.severity}</Badge>
+                  )}
+                  {item.direction && (
+                    <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', color: '#8db7d6' }}>
+                      {item.direction}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: '11px', color: '#8ea5b8', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                  <span><b style={{ color: '#ff8a80' }}>SRC:</b> {item.srcIp} <small style={{ opacity: 0.75 }}>({item.originTag})</small></span>
+                  <span>➔</span>
+                  <span><b style={{ color: '#80d8ff' }}>DST:</b> {item.dstIp} <small style={{ opacity: 0.75 }}>({item.targetTag})</small></span>
+                  <span style={{ marginLeft: 'auto', fontWeight: 600, color: item.isStop ? '#69f0ae' : '#ffb74d' }}>
+                    {item.isStop ? '✓ ' : '● '}{item.status}
+                  </span>
+                </div>
               </div>
-              <Badge tone={item.severity}>{item.severity}</Badge>
               <span className="row-score">{item.score}</span>
               <span className="row-arrow">›</span>
             </button>
@@ -295,7 +331,8 @@ function ThreatIncidentsView({ incidents, openIncident }) {
   const [filter, setFilter] = useState('ALL');
   const filtered = useMemo(() => {
     if (filter === 'ALL') return incidents;
-    return incidents.filter(i => i.severity === filter);
+    if (filter === 'STOPPED') return incidents.filter(i => i.isStop);
+    return incidents.filter(i => i.severity === filter && !i.isStop);
   }, [incidents, filter]);
 
   return (
@@ -307,7 +344,7 @@ function ThreatIncidentsView({ incidents, openIncident }) {
           <p>Multi-detector threat alerts generated by the ThreatFusionEngine with preserved evidence cards.</p>
         </div>
         <div className="heading-actions" style={{ display: 'flex', gap: '8px' }}>
-          {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(lvl => (
+          {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'STOPPED'].map(lvl => (
             <button
               key={lvl}
               className={filter === lvl ? 'primary-button' : 'secondary-button'}
@@ -325,10 +362,28 @@ function ThreatIncidentsView({ incidents, openIncident }) {
             <button className="incident-row" key={item.id} onClick={() => openIncident(item)}>
               <div className={`severity-bar severity-${item.severity.toLowerCase()}`} />
               <div className="incident-copy">
-                <strong>{item.title}</strong>
-                <span>{item.id} · Entity: {item.entityId} · Method: {item.detector} · Mitigation: {item.mitigation}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <strong>{item.title}</strong>
+                  {item.isStop ? (
+                    <Badge tone="low">STOPPED / BENIGN</Badge>
+                  ) : (
+                    <Badge tone={item.severity}>{item.severity}</Badge>
+                  )}
+                  {item.direction && (
+                    <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', color: '#8db7d6' }}>
+                      {item.direction}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: '11px', color: '#8ea5b8', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                  <span><b style={{ color: '#ff8a80' }}>SRC:</b> {item.srcIp} <small style={{ opacity: 0.75 }}>({item.originTag})</small></span>
+                  <span>➔</span>
+                  <span><b style={{ color: '#80d8ff' }}>DST:</b> {item.dstIp} <small style={{ opacity: 0.75 }}>({item.targetTag})</small></span>
+                  <span style={{ marginLeft: 'auto', fontWeight: 600, color: item.isStop ? '#69f0ae' : '#ffb74d' }}>
+                    {item.isStop ? '✓ ' : '● '}{item.status}
+                  </span>
+                </div>
               </div>
-              <Badge tone={item.severity}>{item.severity}</Badge>
               <span className="row-score">{item.score}</span>
               <span className="row-arrow">›</span>
             </button>
@@ -817,20 +872,24 @@ export default function PassiveShieldPortal() {
 
             <div className="drawer-facts">
               <div>
-                <span>AFFECTED ENTITY</span>
-                <strong>{selected.source}</strong>
+                <span>ATTACK ORIGIN (SOURCE)</span>
+                <strong style={{ color: '#ff8a80' }}>{selected.srcIp}</strong>
+                <small style={{ color: '#8db7d6', display: 'block', marginTop: '2px' }}>{selected.originTag}</small>
               </div>
               <div>
-                <span>PRIMARY DETECTOR</span>
-                <strong>{selected.detector}</strong>
+                <span>ATTACK TARGET (DESTINATION)</span>
+                <strong style={{ color: '#80d8ff' }}>{selected.dstIp}</strong>
+                <small style={{ color: '#8db7d6', display: 'block', marginTop: '2px' }}>{selected.targetTag}</small>
               </div>
               <div>
-                <span>INVESTIGATION STATUS</span>
-                <strong>{selected.status}</strong>
+                <span>DIRECTION &amp; DETECTOR</span>
+                <strong>{selected.direction} · {selected.detector}</strong>
               </div>
               <div>
-                <span>RECOMMENDED MITIGATION</span>
-                <strong style={{ color: '#7eb8e6' }}>{selected.mitigation}</strong>
+                <span>LIFECYCLE STATE</span>
+                <strong style={{ color: selected.isStop ? '#69f0ae' : '#ffb74d' }}>
+                  {selected.isStop ? '✓ ' : '● '}{selected.status}
+                </strong>
               </div>
             </div>
 
